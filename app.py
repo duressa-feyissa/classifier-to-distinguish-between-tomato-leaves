@@ -1,8 +1,10 @@
+import io
 import os
 
 import numpy as np
 import tensorflow as tf
 from flask import Flask, jsonify, render_template, request
+from PIL import Image
 from tensorflow.keras.preprocessing import image
 
 app = Flask(__name__)
@@ -10,8 +12,8 @@ app = Flask(__name__)
 # Load the trained model
 model = tf.keras.models.load_model('model.keras', compile=False)
 
-def preprocess_image(img_path):
-    img = image.load_img(img_path, target_size=(150, 150))
+def preprocess_image(img):
+    img = img.resize((150, 150))
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
     img_array /= 255.0
@@ -28,10 +30,8 @@ def predict():
         return jsonify({"message": "No file selected for uploading"}), 400
     
     if file:
-        file_path = os.path.join("uploads", file.filename)
-        file.save(file_path)
-        
-        img_array = preprocess_image(file_path)
+        img = Image.open(io.BytesIO(file.read()))
+        img_array = preprocess_image(img)
         prediction = model.predict(img_array)
         
         if prediction[0] > 0.6:
@@ -39,9 +39,8 @@ def predict():
         else:
             result = "The image is not a tomato leaf"
         
-        os.remove(file_path)
         return jsonify({"message": result})
-    
+
 @app.route('/')
 def home():
     return render_template('index.html')
