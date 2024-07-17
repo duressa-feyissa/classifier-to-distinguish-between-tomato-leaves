@@ -33,19 +33,26 @@
         margin-bottom: 30px;
         font-size: 2em;
       }
+      .special-upload {
+        background: #f1f1f1;
+        border: 2px dashed #007bff;
+        padding: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .special-upload:hover {
+        background: #e7f0ff;
+      }
       input[type="file"] {
         display: none;
       }
       label {
-        background: #007bff;
-        color: white;
-        padding: 14px 28px;
-        border-radius: 8px;
+        display: inline-block;
+        margin: 10px 0;
+        font-size: 1.1em;
+        color: #007bff;
         cursor: pointer;
-        transition: background 0.3s ease;
-      }
-      label:hover {
-        background: #0056b3;
       }
       button {
         background: #28a745;
@@ -59,6 +66,19 @@
       }
       button:hover {
         background: #218838;
+      }
+      .change-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background 0.3s ease;
+      }
+      .change-btn:hover {
+        background: #0056b3;
       }
       #result {
         margin-top: 30px;
@@ -83,21 +103,58 @@
           transform: rotate(360deg);
         }
       }
+      #uploadedImage {
+        margin-top: 20px;
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Tomato Leaf or Not?</h1>
       <form id="uploadForm">
-        <label for="fileInput">Choose an image</label>
-        <input type="file" id="fileInput" name="file" />
-        <button type="submit">Upload</button>
+        <div class="special-upload">
+          <label for="fileInput">Choose an image</label>
+          <input type="file" id="fileInput" name="file" />
+        </div>
+        <button type="submit" id="uploadButton">Upload</button>
+        <button
+          type="button"
+          id="changeButton"
+          class="change-btn"
+          style="display: none"
+        >
+          Change Image
+        </button>
       </form>
       <div class="spinner" id="spinner"></div>
       <div id="result"></div>
+      <img
+        id="uploadedImage"
+        src="#"
+        alt="Uploaded Image"
+        style="display: none"
+      />
     </div>
 
     <script>
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", function () {
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const uploadedImage = document.getElementById("uploadedImage");
+              uploadedImage.src = e.target.result;
+              uploadedImage.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+
       document
         .getElementById("uploadForm")
         .addEventListener("submit", async function (event) {
@@ -124,6 +181,19 @@
           const result = await response.json();
           spinner.style.display = "none";
           document.getElementById("result").innerText = result.message;
+
+          document.getElementById("uploadButton").style.display = "none";
+          document.getElementById("changeButton").style.display = "block";
+        });
+
+      document
+        .getElementById("changeButton")
+        .addEventListener("click", function () {
+          document.getElementById("uploadButton").style.display = "block";
+          document.getElementById("changeButton").style.display = "none";
+          document.getElementById("uploadedImage").style.display = "none";
+          document.getElementById("result").innerText = "";
+          document.getElementById("fileInput").value = "";
         });
     </script>
   </body>
